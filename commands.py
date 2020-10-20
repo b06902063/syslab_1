@@ -15,6 +15,11 @@ def get_angle(x1, y1, x2, y2):
     else:
         return math.degrees(math.atan((y2 - y1)/ (x2 - x1)))
     
+def rotate_and_scale(image, angle, scale, image_center):
+  
+  rot_mat = cv2.getRotationMatrix2D(image_center, angle, scale)
+  result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
+  return result
 
 def swipe_scroll(record, coords):
     last_finger_info = record.get_last_frame_finger_info()
@@ -23,17 +28,17 @@ def swipe_scroll(record, coords):
         x2, y2 = coords[0]
         if abs(x2 - x1) > abs(y2 - y1):
             if x2 > x1:
-                return 'right'
+                return 'right', x2 - x1
             else:
-                return 'left'
+                return 'left', x1 - x2
         else:
             if y2 > y1:
-                return 'up'
+                return 'up', y2 - y1
             else:
-                return 'down'
+                return 'down', y1 - y2
                 
     else:
-        return 'non'
+        return 'non', 0
     
 def commands(record, coords):
     last_finger_info = record.get_last_frame_finger_info()
