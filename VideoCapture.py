@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import time
+from copy import deepcopy
 
 # 選擇攝影機
 cap = cv2.VideoCapture(0)
@@ -12,7 +13,7 @@ class Record():
 	def __init__(self, H, W):
 		self.H = H
 		self.W = W
-		self.records = np.zeros((1, H, W), dtype=np.uint8)
+		self.init()
 	
 
 	def get_last_frame_finger_info(self):
@@ -37,13 +38,19 @@ class Record():
 
 	def add_record(self, finger_map):
 		if (finger_map == 0).all() or self.records.shape[0] > 120:
-			self.init()
-			stroke_end = True
+			if (self.records[-1, :, :] == 0).all():
+				records = self.records
+				stroke_end = False
+			else:
+				records = deepcopy(self.records)
+				self.init()
+				stroke_end = True
 		else:
 			self.records = np.concatenate((self.records, np.expand_dims(finger_map, 0)), 0)
+			records = self.records
 			stroke_end = False
 			
-		return stroke_end, self.records
+		return stroke_end, records
 
 
 	def init(self):
@@ -69,7 +76,8 @@ class Record():
 			if this_id not in self.history_ids:
 				self.history_ids.append(this_id)
 			return this_id
-		except:
+		except Exception as e:
+			print(e)
 			import ipdb; ipdb.set_trace()
 
 
